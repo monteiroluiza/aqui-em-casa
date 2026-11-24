@@ -30,4 +30,16 @@ public class Usuario {
     public UUID getId() {
         return id;
     }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getSenhaHash() {
+        return senhaHash;
+    }
 }

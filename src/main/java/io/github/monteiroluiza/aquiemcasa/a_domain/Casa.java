@@ -26,4 +26,8 @@ public class Casa {
     public UUID getId() {
         return id;
     }
+
+    public String getNome() {
+        return nome;
+    }
 }

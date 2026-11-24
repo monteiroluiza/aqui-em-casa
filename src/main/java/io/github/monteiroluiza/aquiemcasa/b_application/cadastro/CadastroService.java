@@ -3,7 +3,7 @@ package io.github.monteiroluiza.aquiemcasa.b_application.cadastro;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,10 +24,11 @@ public class CadastroService {
     private final CasaRepository casas;
     private final MembroCasaRepository membros;
     private final ListaComprasRepository listas;
-    private final Pbkdf2PasswordEncoder encoder = Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+    private final PasswordEncoder encoder;
 
     public CadastroService(UsuarioRepository usuarios, CasaRepository casas, MembroCasaRepository membros,
-                           ListaComprasRepository listas) {
+                           ListaComprasRepository listas, PasswordEncoder encoder) {
+        this.encoder = encoder;
         this.usuarios = usuarios;
         this.casas = casas;
         this.membros = membros;

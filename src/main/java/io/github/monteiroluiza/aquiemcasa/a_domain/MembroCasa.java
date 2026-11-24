@@ -44,4 +44,12 @@ public class MembroCasa {
     public UUID getId() {
         return id;
     }
+
+    public Casa getCasa() {
+        return casa;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
 }
