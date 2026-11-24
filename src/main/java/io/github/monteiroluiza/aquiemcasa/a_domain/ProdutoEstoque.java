@@ -68,4 +68,24 @@ public class ProdutoEstoque {
     public BigDecimal getQuantidadeFaltante() {
         return quantidadeDesejada.subtract(quantidadeAtual).max(BigDecimal.ZERO);
     }
+
+    public void atualizar(String nome, CategoriaProduto categoria, String unidade,
+                          BigDecimal quantidadeAtual, BigDecimal quantidadeDesejada, MembroCasa autor) {
+        this.nome = nome;
+        this.categoria = categoria;
+        this.unidade = unidade;
+        this.quantidadeAtual = quantidadeAtual;
+        this.quantidadeDesejada = quantidadeDesejada;
+        registrarAlteracao(autor);
+    }
+
+    public void ajustarQuantidade(BigDecimal novaQuantidade, MembroCasa autor) {
+        this.quantidadeAtual = novaQuantidade;
+        registrarAlteracao(autor);
+    }
+
+    private void registrarAlteracao(MembroCasa autor) {
+        this.atualizadoPor = autor;
+        this.atualizadoEm = Instant.now();
+    }
 }

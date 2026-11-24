@@ -33,4 +33,16 @@ public class ListaCompras {
     public UUID getId() {
         return id;
     }
+
+    public long getVersao() {
+        return versao;
+    }
+
+    public Casa getCasa() {
+        return casa;
+    }
+
+    public void avancarVersao() {
+        versao++;
+    }
 }
