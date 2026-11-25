@@ -12,6 +12,8 @@ import io.github.monteiroluiza.aquiemcasa.b_application.compras.AtualizarSituaca
 import io.github.monteiroluiza.aquiemcasa.b_application.compras.IncluirItemManualRequest;
 import io.github.monteiroluiza.aquiemcasa.b_application.compras.ConclusaoCompraService;
 import io.github.monteiroluiza.aquiemcasa.b_application.compras.PreviaConclusaoResponse;
+import io.github.monteiroluiza.aquiemcasa.b_application.compras.ConcluirCompraRequest;
+import io.github.monteiroluiza.aquiemcasa.b_application.compras.ConclusaoCompraResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,6 +59,13 @@ public class ListaComprasController {
     @Operation(summary = "Conferir saldos previstos antes de concluir a compra")
     public PreviaConclusaoResponse gerarPreviaConclusao(@PathVariable UUID casaId, Principal morador) {
         return conclusaoCompra.gerarPrevia(casaId, morador.getName());
+    }
+
+    @PostMapping("/conclusao")
+    @Operation(summary = "Concluir os itens que estão no carrinho")
+    public ConclusaoCompraResponse concluir(@PathVariable UUID casaId, Principal morador,
+                                            @Valid @RequestBody ConcluirCompraRequest dados) {
+        return conclusaoCompra.concluir(casaId, morador.getName(), dados);
     }
 
     @PostMapping("/sugestoes")

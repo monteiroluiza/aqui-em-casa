@@ -37,6 +37,10 @@ public interface ProdutoEstoqueRepository extends JpaRepository<ProdutoEstoque, 
                                           @Param("nome") String nome,
                                           @Param("unidade") String unidade);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from ProdutoEstoque p where p.casa.id = :casaId order by p.id")
+    List<ProdutoEstoque> buscarTodosDaCasaParaAlteracao(@Param("casaId") UUID casaId);
+
     @Query(value = "select id from item_lista where produto_id = :produtoId limit 1", nativeQuery = true)
     Optional<UUID> buscarItemVinculado(@Param("produtoId") UUID produtoId);
 }

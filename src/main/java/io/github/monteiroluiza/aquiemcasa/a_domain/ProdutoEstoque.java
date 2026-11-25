@@ -84,6 +84,11 @@ public class ProdutoEstoque {
         registrarAlteracao(autor);
     }
 
+    public void receberCompra(BigDecimal quantidade, MembroCasa autor) {
+        this.quantidadeAtual = this.quantidadeAtual.add(quantidade);
+        registrarAlteracao(autor);
+    }
+
     private void registrarAlteracao(MembroCasa autor) {
         this.atualizadoPor = autor;
         this.atualizadoEm = Instant.now();
