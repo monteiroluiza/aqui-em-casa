@@ -51,7 +51,7 @@ public class MoradoresService {
         String codigo=Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         UUID id=UUID.randomUUID(); Instant expira=Instant.now().plusSeconds(7*86400);
         jdbc.sql("insert into convite(id,casa_id,emitido_por_id,email_destino,codigo_hash,expira_em) values(:id,:casa,:autor,:email,:hash,:expira)")
-            .param("id",id).param("casa",casa).param("autor",membro).param("email",destino).param("hash",hash(codigo)).param("expira",expira).update();
+            .param("id",id).param("casa",casa).param("autor",membro).param("email",destino).param("hash",hash(codigo)).param("expira", expira.atOffset(java.time.ZoneOffset.UTC)).update();
         return Map.of("id",id,"email",destino,"codigo",codigo,"expiraEm",expira);
     }
     public List<Map<String,Object>> convites(UUID casa,String email) {
