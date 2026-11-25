@@ -2,7 +2,6 @@ package io.github.monteiroluiza.aquiemcasa.b_application.compras;
 
 import java.math.BigDecimal;
 import java.util.UUID;
-import io.github.monteiroluiza.aquiemcasa.a_domain.CategoriaProduto;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +12,6 @@ public record IncluirItemManualRequest(
         UUID produtoId,
         String nome,
         String unidade,
-        CategoriaProduto categoria,
+        UUID categoriaId,
         @NotNull @DecimalMin(value = "0.000", inclusive = false)
         @Digits(integer = 9, fraction = 3) BigDecimal quantidade) {}

@@ -8,7 +8,6 @@ import io.github.monteiroluiza.aquiemcasa.b_application.estoque.AtualizarProduto
 import io.github.monteiroluiza.aquiemcasa.b_application.estoque.AjustarQuantidadeRequest;
 import io.github.monteiroluiza.aquiemcasa.b_application.estoque.EstoqueService;
 import io.github.monteiroluiza.aquiemcasa.b_application.estoque.ProdutoResponse;
-import io.github.monteiroluiza.aquiemcasa.a_domain.CategoriaProduto;
 import io.github.monteiroluiza.aquiemcasa.a_domain.SituacaoEstoque;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -42,9 +41,9 @@ public class EstoqueController {
             @PathVariable UUID casaId,
             Principal morador,
             @RequestParam(required = false) String busca,
-            @RequestParam(required = false) CategoriaProduto categoria,
+            @RequestParam(required = false) UUID categoriaId,
             @RequestParam(required = false) SituacaoEstoque situacao) {
-        return estoque.consultar(casaId, morador.getName(), busca, categoria, situacao);
+        return estoque.consultar(casaId, morador.getName(), busca, categoriaId, situacao);
     }
 
     @PostMapping

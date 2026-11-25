@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,8 +23,8 @@ public class ProdutoEstoque {
 
     private String nome;
 
-    @Enumerated(EnumType.STRING)
-    private CategoriaProduto categoria;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private Categoria categoria;
 
     private String unidade;
     private BigDecimal quantidadeAtual;
@@ -38,7 +36,7 @@ public class ProdutoEstoque {
 
     protected ProdutoEstoque() {}
 
-    public ProdutoEstoque(Casa casa, String nome, CategoriaProduto categoria, String unidade,
+    public ProdutoEstoque(Casa casa, String nome, Categoria categoria, String unidade,
                           BigDecimal quantidadeAtual, BigDecimal quantidadeDesejada, MembroCasa atualizadoPor) {
         this.casa = casa;
         this.nome = nome;
@@ -52,7 +50,7 @@ public class ProdutoEstoque {
 
     public UUID getId() { return id; }
     public String getNome() { return nome; }
-    public CategoriaProduto getCategoria() { return categoria; }
+    public Categoria getCategoria() { return categoria; }
     public String getUnidade() { return unidade; }
     public BigDecimal getQuantidadeAtual() { return quantidadeAtual; }
     public BigDecimal getQuantidadeDesejada() { return quantidadeDesejada; }
@@ -69,7 +67,7 @@ public class ProdutoEstoque {
         return quantidadeDesejada.subtract(quantidadeAtual).max(BigDecimal.ZERO);
     }
 
-    public void atualizar(String nome, CategoriaProduto categoria, String unidade,
+    public void atualizar(String nome, Categoria categoria, String unidade,
                           BigDecimal quantidadeAtual, BigDecimal quantidadeDesejada, MembroCasa autor) {
         this.nome = nome;
         this.categoria = categoria;

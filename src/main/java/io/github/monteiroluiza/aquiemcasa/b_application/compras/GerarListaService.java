@@ -42,7 +42,7 @@ public class GerarListaService {
                         "Lista de compras não encontrada."));
         Map<UUID, ItemLista> itensPorProduto = itens.findByListaIdAndProdutoIsNotNull(lista.getId()).stream()
                 .collect(Collectors.toMap(item -> item.getProduto().getId(), Function.identity()));
-        var sugestoes = produtos.findByCasaIdOrderByCategoriaAscNomeAsc(casaId).stream()
+        var sugestoes = produtos.findByCasaIdOrderByCategoriaNomeAscNomeAsc(casaId).stream()
                 .filter(produto -> produto.getQuantidadeFaltante().signum() > 0)
                 .map(produto -> criarSugestao(produto, itensPorProduto.get(produto.getId())))
                 .toList();
@@ -56,7 +56,8 @@ public class GerarListaService {
         AcaoSugestao acao = item == null
                 ? AcaoSugestao.ADICIONAR
                 : naLista.compareTo(faltante) < 0 ? AcaoSugestao.ATUALIZAR : AcaoSugestao.MANTER;
-        return new SugestaoItemResponse(produto.getId(), produto.getNome(), produto.getCategoria(),
+            return new SugestaoItemResponse(produto.getId(), produto.getNome(),
+                    io.github.monteiroluiza.aquiemcasa.b_application.categoria.CategoriaResumoResponse.de(produto.getCategoria()),
                 produto.getUnidade(), faltante, naLista, sugerida, acao);
     }
 

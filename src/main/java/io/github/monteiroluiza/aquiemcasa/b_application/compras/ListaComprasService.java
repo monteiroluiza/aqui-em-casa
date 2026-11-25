@@ -11,7 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 import io.github.monteiroluiza.aquiemcasa.a_domain.ItemLista;
 import io.github.monteiroluiza.aquiemcasa.a_domain.ListaCompras;
 import io.github.monteiroluiza.aquiemcasa.a_domain.ProdutoEstoque;
-import io.github.monteiroluiza.aquiemcasa.a_domain.CategoriaProduto;
+import io.github.monteiroluiza.aquiemcasa.a_domain.Categoria;
+import io.github.monteiroluiza.aquiemcasa.b_application.categoria.CategoriaService;
 import io.github.monteiroluiza.aquiemcasa.b_application.casa.AcessoCasaService;
 import io.github.monteiroluiza.aquiemcasa.c_infrastructure.repositorio.ItemListaRepository;
 import io.github.monteiroluiza.aquiemcasa.c_infrastructure.repositorio.ListaComprasRepository;
@@ -23,13 +24,16 @@ public class ListaComprasService {
     private final ListaComprasRepository listas;
     private final ItemListaRepository itens;
     private final ProdutoEstoqueRepository produtos;
+    private final CategoriaService categorias;
 
     public ListaComprasService(AcessoCasaService acesso, ListaComprasRepository listas,
-                               ItemListaRepository itens, ProdutoEstoqueRepository produtos) {
+                               ItemListaRepository itens, ProdutoEstoqueRepository produtos,
+                               CategoriaService categorias) {
         this.acesso = acesso;
         this.listas = listas;
         this.itens = itens;
         this.produtos = produtos;
+        this.categorias = categorias;
     }
 
     @Transactional(readOnly = true)
@@ -87,9 +91,9 @@ public class ListaComprasService {
         ProdutoEstoque produto = null;
         String nome = null;
         String unidade = null;
-        CategoriaProduto categoria = null;
+        Categoria categoria = null;
         if (dados.produtoId() != null) {
-            if (temTexto(dados.nome()) || temTexto(dados.unidade()) || dados.categoria() != null) {
+            if (temTexto(dados.nome()) || temTexto(dados.unidade()) || dados.categoriaId() != null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Ao informar produtoId, não envie nome, unidade ou categoria.");
             }
@@ -98,13 +102,13 @@ public class ListaComprasService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "Produto não encontrado nesta casa."));
         } else {
-            if (!temTexto(dados.nome()) || !temTexto(dados.unidade())) {
+            if (!temTexto(dados.nome()) || !temTexto(dados.unidade()) || dados.categoriaId() == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Informe nome e unidade para cadastrar um item avulso.");
+                        "Informe nome, unidade e categoriaId para cadastrar um item avulso.");
             }
             nome = dados.nome().strip();
             unidade = dados.unidade().strip();
-            categoria = dados.categoria() == null ? CategoriaProduto.DESPENSA : dados.categoria();
+            categoria = categorias.buscarDaCasa(casaId, dados.categoriaId());
             var compativeis = produtos.buscarCompativeis(casaId, nome, unidade);
             if (compativeis.size() > 1) {
                 throw new ResponseStatusException(HttpStatus.CONFLICT,

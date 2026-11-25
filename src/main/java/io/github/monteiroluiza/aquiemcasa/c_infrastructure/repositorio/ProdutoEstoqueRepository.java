@@ -12,11 +12,12 @@ import org.springframework.data.repository.query.Param;
 import io.github.monteiroluiza.aquiemcasa.a_domain.ProdutoEstoque;
 
 public interface ProdutoEstoqueRepository extends JpaRepository<ProdutoEstoque, UUID> {
-    @EntityGraph(attributePaths = {"atualizadoPor", "atualizadoPor.usuario"})
-    List<ProdutoEstoque> findByCasaIdOrderByCategoriaAscNomeAsc(UUID casaId);
+    boolean existsByCategoriaId(UUID categoriaId);
+    @EntityGraph(attributePaths = {"categoria", "atualizadoPor", "atualizadoPor.usuario"})
+    List<ProdutoEstoque> findByCasaIdOrderByCategoriaNomeAscNomeAsc(UUID casaId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @EntityGraph(attributePaths = {"atualizadoPor", "atualizadoPor.usuario"})
+    @EntityGraph(attributePaths = {"categoria", "atualizadoPor", "atualizadoPor.usuario"})
     @Query("select p from ProdutoEstoque p where p.id = :produtoId and p.casa.id = :casaId")
     Optional<ProdutoEstoque> buscarParaAlteracao(@Param("casaId") UUID casaId,
                                                 @Param("produtoId") UUID produtoId);

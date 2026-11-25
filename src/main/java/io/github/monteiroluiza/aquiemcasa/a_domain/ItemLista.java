@@ -31,8 +31,8 @@ public class ItemLista {
     private String nome;
     private String unidade;
 
-    @Enumerated(EnumType.STRING)
-    private CategoriaProduto categoria;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Categoria categoria;
 
     private BigDecimal quantidade;
 
@@ -50,7 +50,7 @@ public class ItemLista {
     }
 
     public ItemLista(Casa casa, ListaCompras lista, String nome, String unidade,
-                     CategoriaProduto categoria, BigDecimal quantidade) {
+                     Categoria categoria, BigDecimal quantidade) {
         this.casa = casa;
         this.lista = lista;
         this.nome = nome;
@@ -66,7 +66,7 @@ public class ItemLista {
     public SituacaoItemLista getSituacao() { return situacao; }
     public String getNomeExibicao() { return produto == null ? nome : produto.getNome(); }
     public String getUnidadeExibicao() { return produto == null ? unidade : produto.getUnidade(); }
-    public CategoriaProduto getCategoriaExibicao() { return produto == null ? categoria : produto.getCategoria(); }
+    public Categoria getCategoriaExibicao() { return produto == null ? categoria : produto.getCategoria(); }
 
     public void atualizarQuantidade(BigDecimal quantidade) {
         this.quantidade = quantidade;

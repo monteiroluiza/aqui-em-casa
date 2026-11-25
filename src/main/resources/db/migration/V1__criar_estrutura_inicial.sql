@@ -39,18 +39,32 @@ CREATE TABLE recuperacao_senha (
     usado_em timestamptz
 );
 
+CREATE TABLE categoria (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    casa_id uuid NOT NULL REFERENCES casa(id),
+    nome text NOT NULL CHECK (btrim(nome) <> ''),
+    criada_em timestamptz NOT NULL DEFAULT now(),
+    criada_por_id uuid NOT NULL,
+    UNIQUE (casa_id, id),
+    FOREIGN KEY (casa_id, criada_por_id) REFERENCES membro_casa(casa_id, id)
+);
+
+CREATE UNIQUE INDEX categoria_nome_unico
+    ON categoria (casa_id, lower(btrim(nome)));
+
 CREATE TABLE produto_estoque (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     casa_id uuid NOT NULL REFERENCES casa(id),
     nome text NOT NULL CHECK (btrim(nome) <> ''),
-    categoria text NOT NULL CHECK (categoria IN ('DESPENSA', 'GELADEIRA', 'LIMPEZA', 'HIGIENE')),
+    categoria_id uuid NOT NULL,
     unidade text NOT NULL CHECK (btrim(unidade) <> ''),
     quantidade_atual numeric(12,3) NOT NULL DEFAULT 0 CHECK (quantidade_atual >= 0 AND quantidade_atual <> 'NaN'),
     quantidade_desejada numeric(12,3) NOT NULL DEFAULT 0 CHECK (quantidade_desejada >= 0 AND quantidade_desejada <> 'NaN'),
     atualizado_em timestamptz NOT NULL DEFAULT now(),
     atualizado_por_id uuid NOT NULL,
     UNIQUE (casa_id, id),
-    FOREIGN KEY (casa_id, atualizado_por_id) REFERENCES membro_casa(casa_id, id)
+    FOREIGN KEY (casa_id, atualizado_por_id) REFERENCES membro_casa(casa_id, id),
+    FOREIGN KEY (casa_id, categoria_id) REFERENCES categoria(casa_id, id)
 );
 
 CREATE TABLE lista_compras (
@@ -67,14 +81,15 @@ CREATE TABLE item_lista (
     produto_id uuid,
     nome text CHECK (btrim(nome) <> ''),
     unidade text CHECK (btrim(unidade) <> ''),
-    categoria text CHECK (categoria IN ('DESPENSA', 'GELADEIRA', 'LIMPEZA', 'HIGIENE')),
+    categoria_id uuid,
     quantidade numeric(12,3) NOT NULL CHECK (quantidade > 0 AND quantidade <> 'NaN'),
     situacao text NOT NULL DEFAULT 'PENDENTE' CHECK (situacao IN ('PENDENTE', 'NO_CARRINHO')),
     FOREIGN KEY (casa_id, lista_id) REFERENCES lista_compras(casa_id, id),
     FOREIGN KEY (casa_id, produto_id) REFERENCES produto_estoque(casa_id, id),
+    FOREIGN KEY (casa_id, categoria_id) REFERENCES categoria(casa_id, id),
     CONSTRAINT item_lista_origem_valida CHECK (
-        (produto_id IS NULL AND nome IS NOT NULL AND unidade IS NOT NULL AND categoria IS NOT NULL)
-        OR (produto_id IS NOT NULL AND nome IS NULL AND unidade IS NULL AND categoria IS NULL)
+        (produto_id IS NULL AND nome IS NOT NULL AND unidade IS NOT NULL AND categoria_id IS NOT NULL)
+        OR (produto_id IS NOT NULL AND nome IS NULL AND unidade IS NULL AND categoria_id IS NULL)
     )
 );
 

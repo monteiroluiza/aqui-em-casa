@@ -17,7 +17,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import io.github.monteiroluiza.aquiemcasa.a_domain.CategoriaProduto;
+import io.github.monteiroluiza.aquiemcasa.a_domain.Categoria;
+import io.github.monteiroluiza.aquiemcasa.b_application.categoria.CategoriaResumoResponse;
 import io.github.monteiroluiza.aquiemcasa.a_domain.ItemLista;
 import io.github.monteiroluiza.aquiemcasa.a_domain.ListaCompras;
 import io.github.monteiroluiza.aquiemcasa.a_domain.ProdutoEstoque;
@@ -50,7 +51,7 @@ public class ConclusaoCompraService {
         acesso.exigirMembroAtivo(casaId, email);
         var lista = listas.findByCasaId(casaId).orElseThrow(this::listaNaoEncontrada);
         var resumo = calcularResumo(lista, itens.findByListaId(lista.getId()),
-                produtos.findByCasaIdOrderByCategoriaAscNomeAsc(casaId));
+                produtos.findByCasaIdOrderByCategoriaNomeAscNomeAsc(casaId));
         exigirItensNoCarrinho(resumo);
         return resumo.resposta();
     }
@@ -79,6 +80,7 @@ public class ConclusaoCompraService {
             throw new ResumoDesatualizadoException(resumo.resposta());
         }
 
+        jdbc.sql("select set_config('app.tipo_movimentacao', 'COMPRA', true)").query(String.class).single();
         for (var compra : resumo.compras()) {
             validarQuantidade(compra.quantidade());
             if (compra.produto() == null) {
@@ -106,8 +108,17 @@ public class ConclusaoCompraService {
                 .param("id", dados.confirmacaoId()).param("casaId", casaId)
                 .param("listaId", lista.getId()).param("membroId", membro.getId())
                 .param("payloadHash", payloadHash).param("versao", lista.getVersao())
-                .param("itensProcessados", itensProcessados).param("concluidaEm", concluidaEm)
+                .param("itensProcessados", itensProcessados).param("concluidaEm", concluidaEm.atOffset(java.time.ZoneOffset.UTC))
                 .update();
+        jdbc.sql("select set_config('app.tipo_movimentacao', 'COMPRA', true)").query(String.class).single();
+        for (var compra : resumo.compras()) {
+            jdbc.sql("""
+                    insert into item_compra_historico (compra_id, nome, categoria, unidade, quantidade)
+                    values (:compra, :nome, :categoria, :unidade, :quantidade)
+                    """).param("compra", dados.confirmacaoId()).param("nome", compra.nome())
+                    .param("categoria", compra.categoria().getNome()).param("unidade", compra.unidade())
+                    .param("quantidade", compra.quantidade()).update();
+        }
         return new ConclusaoCompraResponse(dados.confirmacaoId(), concluidaEm,
                 lista.getVersao(), itensProcessados, false);
     }
@@ -230,7 +241,7 @@ public class ConclusaoCompraService {
         private final List<UUID> itemIds = new ArrayList<>();
         private final ProdutoEstoque produto;
         private final String nome;
-        private final CategoriaProduto categoria;
+        private final Categoria categoria;
         private final String unidade;
         private BigDecimal quantidade = BigDecimal.ZERO;
 
@@ -242,7 +253,7 @@ public class ConclusaoCompraService {
         }
         void adicionar(ItemLista item) { itemIds.add(item.getId()); quantidade = quantidade.add(item.getQuantidade()); }
         String nome() { return nome; }
-        CategoriaProduto categoria() { return categoria; }
+        Categoria categoria() { return categoria; }
         String unidade() { return unidade; }
         BigDecimal quantidade() { return quantidade; }
         ProdutoEstoque produto() { return produto; }
@@ -250,7 +261,8 @@ public class ConclusaoCompraService {
         CompraPrevistaResponse resposta() {
             BigDecimal saldoAtual = produto == null ? BigDecimal.ZERO : produto.getQuantidadeAtual();
             return new CompraPrevistaResponse(List.copyOf(itemIds), produto == null ? null : produto.getId(),
-                    nome, categoria, unidade, quantidade, saldoAtual, saldoAtual.add(quantidade), produto == null);
+                    nome, CategoriaResumoResponse.de(categoria), unidade, quantidade,
+                    saldoAtual, saldoAtual.add(quantidade), produto == null);
         }
     }
 }

@@ -52,12 +52,17 @@ public class SegurancaConfig {
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(config -> config.disable())
                 .logout(config -> config.disable())
-                .oauth2ResourceServer(config -> config.opaqueToken(Customizer.withDefaults()))
+                .oauth2ResourceServer(config -> config.opaqueToken(Customizer.withDefaults())
+                    .authenticationEntryPoint((req,res,e) -> ErrosSeguranca.responder(res,401))
+                    .accessDeniedHandler((req,res,e) -> ErrosSeguranca.responder(res,403)))
+                .exceptionHandling(config -> config
+                    .authenticationEntryPoint((req,res,e) -> ErrosSeguranca.responder(res,401))
+                    .accessDeniedHandler((req,res,e) -> ErrosSeguranca.responder(res,403)))
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**",
                                 "/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/cadastros/nova-casa").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/cadastros/nova-casa", "/api/convites/aceitar").permitAll()
                         .anyRequest().authenticated())
                 .build();
     }
