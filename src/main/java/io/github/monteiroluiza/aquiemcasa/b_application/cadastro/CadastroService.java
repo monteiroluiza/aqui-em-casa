@@ -28,10 +28,12 @@ public class CadastroService {
     private final ListaComprasRepository listas;
     private final CategoriaRepository categorias;
     private final PasswordEncoder encoder;
+    private final org.springframework.jdbc.core.simple.JdbcClient jdbc;
 
     public CadastroService(UsuarioRepository usuarios, CasaRepository casas, MembroCasaRepository membros,
                            ListaComprasRepository listas, CategoriaRepository categorias,
-                           PasswordEncoder encoder) {
+                           PasswordEncoder encoder, org.springframework.jdbc.core.simple.JdbcClient jdbc) {
+        this.jdbc = jdbc;
         this.encoder = encoder;
         this.usuarios = usuarios;
         this.casas = casas;
@@ -52,7 +54,24 @@ public class CadastroService {
             }
             throw erro;
         }
-        Casa casa = casas.save(new Casa(dados.nomeCasa().strip()));
+        return criarCasa(usuario, dados.nomeCasa());
+    }
+
+    @Transactional
+    public NovaCasaResponse criarParaUsuario(String email, String nomeCasa) {
+        // Mesmo bloqueio do aceite de convites: serializa novos vinculos do usuario.
+        jdbc.sql("select pg_advisory_xact_lock(hashtextextended(:email, 0)) is null")
+                .param("email", email).query(Boolean.class).single();
+        Usuario usuario = usuarios.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario nao encontrado."));
+        if (!membros.consultarCasasAtivas(email).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Voce ja possui uma casa ativa.");
+        }
+        return criarCasa(usuario, nomeCasa);
+    }
+
+    private NovaCasaResponse criarCasa(Usuario usuario, String nomeCasa) {
+        Casa casa = casas.save(new Casa(nomeCasa.strip()));
         Papel papel = Papel.ADMINISTRADOR;
         MembroCasa membro = membros.save(new MembroCasa(casa, usuario, papel));
         ListaCompras lista = listas.save(new ListaCompras(casa));
