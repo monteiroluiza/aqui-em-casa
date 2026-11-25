@@ -17,6 +17,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 
+import java.util.Arrays;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 
 
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -40,6 +47,20 @@ public class SegurancaConfig {
     }
 
     @Bean
+    CorsConfigurationSource corsConfigurationSource(
+            @Value("${app.cors.allowed-origins}") String[] origensPermitidas) {
+        var config = new CorsConfiguration();
+        config.setAllowedOrigins(Arrays.asList(origensPermitidas));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        config.setMaxAge(3600L);
+
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
     AuthenticationManager authenticationManager(UserDetailsService moradores, PasswordEncoder encoder) {
         var provider = new DaoAuthenticationProvider(moradores);
         provider.setPasswordEncoder(encoder);
@@ -49,6 +70,7 @@ public class SegurancaConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(Customizer.withDefaults())
                 .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(config -> config.disable())
                 .logout(config -> config.disable())
