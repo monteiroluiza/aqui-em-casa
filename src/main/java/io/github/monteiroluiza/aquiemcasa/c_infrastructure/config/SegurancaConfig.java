@@ -83,7 +83,7 @@ public class SegurancaConfig {
                 .authorizeHttpRequests(auth -> auth
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.GET, "/swagger-ui.html", "/swagger-ui/**",
-                                "/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml").permitAll()
+                                "/v3/api-docs", "/v3/api-docs/**", "/v3/api-docs.yaml", "/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/cadastros/nova-casa", "/api/convites/aceitar").permitAll()
                         .anyRequest().authenticated())
                 .build();
